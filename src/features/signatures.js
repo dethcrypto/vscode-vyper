@@ -1,8 +1,8 @@
-'use strict';
-/** 
+"use strict";
+/**
  * @author github.com/tintinweb
  * @license MIT
- * 
+ *
  * */
 
 class VyperSignatureHelpProvider {
@@ -22,5 +22,5 @@ class VyperSignatureHelpProvider {
 }
 
 module.exports = {
-    VyperSignatureHelpProvider: VyperSignatureHelpProvider
+    VyperSignatureHelpProvider: VyperSignatureHelpProvider,
 };

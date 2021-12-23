@@ -123,12 +123,16 @@
         ]
     },
     "scripts": {
-        "fetchGrammar": "rm -f syntaxes/vyper.tmLanguage.json  && python3 ./scripts/fetch_vyper_language_spec.py > syntaxes/vyper.tmLanguage.json"
+        "fetchGrammar": "rm -f syntaxes/vyper.tmLanguage.json  && python3 ./scripts/fetch_vyper_language_spec.py > syntaxes/vyper.tmLanguage.json",
+        "format": "prettier --ignore-path ./prettierignore --write ."
     },
     "dependencies": {
         "async": "^2.6.3",
         "chai": "^4.2.0",
         "mythxjs": "^1.3.1",
         "shell-escape": "^0.2.0"
+    },
+    "devDependencies": {
+        "prettier": "^2.5.1"
     }
 }

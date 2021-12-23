@@ -1,8 +1,8 @@
-'use strict';
-/** 
+"use strict";
+/**
  * @author github.com/tintinweb
  * @license MIT
- * 
+ *
  * compilation related parts taken from: https://github.com/trufflesuite/truffle/tree/develop/packages/truffle-compile-vyper (MIT)
  * */
 
@@ -11,14 +11,13 @@ const path = require("path");
 const exec = require("child_process").exec;
 const async = require("async");
 const mod_analyze = require("./analyze.js");
-const shellescape = require('shell-escape');
+const shellescape = require("shell-escape");
 const settings = require("../settings");
-
 
 var extensionContext;
 var compiler = {
     name: settings.LANGUAGE_ID,
-    version: null
+    version: null,
 };
 
 var VYPER_ID = null;
@@ -27,7 +26,7 @@ const VYPER_PATTERN = " **/*.{vy,v.py,vyper.py}";
 const compile = {};
 var diagnosticCollections = {
     compiler: null,
-    mythx: null
+    mythx: null,
 };
 
 compile.display = function (paths, options) {
@@ -36,10 +35,12 @@ compile.display = function (paths, options) {
             paths = Object.keys(paths);
         }
 
-        paths.sort().forEach(contract => {
+        paths.sort().forEach((contract) => {
             if (path.isAbsolute(contract)) {
                 contract =
-                    "." + path.sep + path.relative(options.working_directory, contract);
+                    "." +
+                    path.sep +
+                    path.relative(options.working_directory, contract);
             }
             options.logger.log("> Compiling " + contract);
         });
@@ -54,25 +55,26 @@ function workspaceForFile(fpath) {
 // Check that vyper is available, save its version
 function checkVyper(source_file, callback) {
     //allow anything as command - no shellescape to even allow python -m vyper --version etc...
-    exec(`${settings.extensionConfig().command} --version`,
-        { 'cwd': workspaceForFile(source_file) },
+    exec(
+        `${settings.extensionConfig().command} --version`,
+        { cwd: workspaceForFile(source_file) },
         function (err, stdout, stderr) {
-            if (err)
-                return callback(`Error executing vyper:\n${stderr}`);
+            if (err) return callback(`Error executing vyper:\n${stderr}`);
 
             compiler.version = stdout.trim();
 
             callback(null);
-        });
+        }
+    );
 }
 
 // Execute vyper for single source file
 function execVyper(source_path, callback) {
     const formats = ["abi", "bytecode", "bytecode_runtime"];
     let escapedTarget;
-    if (process.platform.startsWith("win")){
+    if (process.platform.startsWith("win")) {
         //nasty windows shell..
-        if(source_path.includes('"')){
+        if (source_path.includes('"')) {
             return callback(
                 `Compilation of ${source_path} failed. Invalid Filename (quotes).`
             );
@@ -82,10 +84,13 @@ function execVyper(source_path, callback) {
         //assume linux/macos.bash.
         escapedTarget = `${shellescape([source_path])}`; //is quoted.
     }
-    const command = `${settings.extensionConfig().command} -f${formats.join(",")} ${escapedTarget}`;
+    const command = `${settings.extensionConfig().command} -f${formats.join(
+        ","
+    )} ${escapedTarget}`;
     //console.log(command);
-    exec(command,
-        { 'cwd': workspaceForFile(source_path) },
+    exec(
+        command,
+        { cwd: workspaceForFile(source_path) },
         function (err, stdout, stderr) {
             if (err)
                 return callback(
@@ -93,14 +98,20 @@ function execVyper(source_path, callback) {
                 );
             var outputs = stdout.split(/\r?\n/);
 
-            const compiled_contract = outputs.reduce(function (contract, output, index) {
+            const compiled_contract = outputs.reduce(function (
+                contract,
+                output,
+                index
+            ) {
                 return Object.assign(contract, {
-                    [formats[index]]: output
+                    [formats[index]]: output,
                 });
-            }, {});
+            },
+            {});
 
             callback(null, compiled_contract);
-        });
+        }
+    );
 }
 
 // compile all options.paths
@@ -119,9 +130,9 @@ function compileAll(options, callback) {
 
                 // if extension is .py, remove second extension from filename
                 const contract_name =
-                    extension !== ".py" ?
-                        basename :
-                        path.basename(basename, path.extname(basename));
+                    extension !== ".py"
+                        ? basename
+                        : path.basename(basename, path.extname(basename));
 
                 const contract_definition = {
                     contract_name: contract_name,
@@ -131,7 +142,7 @@ function compileAll(options, callback) {
                     bytecode: compiled_contract.bytecode,
                     deployedBytecode: compiled_contract.bytecode_runtime,
 
-                    compiler: compiler
+                    compiler: compiler,
                 };
 
                 c(null, contract_definition);
@@ -148,7 +159,7 @@ function compileAll(options, callback) {
 
             const compilerInfo = {
                 name: "vyper",
-                version: compiler.version
+                version: compiler.version,
             };
 
             callback(null, result, options.paths, compilerInfo);
@@ -160,11 +171,11 @@ function compileAll(options, callback) {
 function compileVyper(options, callback) {
     // filter out non-vyper paths
 
-
     // no vyper files found, no need to check vyper
     if (options.paths.length === 0) return callback(null, {}, []);
 
-    checkVyper(options.paths[0], function (err) {  //@use first files workspaces as CWD
+    checkVyper(options.paths[0], function (err) {
+        //@use first files workspaces as CWD
         if (err) return callback(err);
 
         return compileAll(options, callback);
@@ -174,7 +185,10 @@ function compileVyper(options, callback) {
 // append .vy pattern to contracts_directory in options and return updated options
 function updateContractsDirectory(options) {
     return options.with({
-        contracts_directory: path.join(options.contracts_directory, VYPER_PATTERN)
+        contracts_directory: path.join(
+            options.contracts_directory,
+            VYPER_PATTERN
+        ),
     });
 }
 
@@ -197,11 +211,17 @@ function compileActiveFileCommand(contractFile) {
             (success) => {
                 diagnosticCollections.compiler.delete(contractFile.uri);
                 diagnosticCollections.mythx.delete(contractFile.uri);
-                vscode.window.showInformationMessage('[Compiler success] ' + Object.keys(success).join(","));
+                vscode.window.showInformationMessage(
+                    "[Compiler success] " + Object.keys(success).join(",")
+                );
 
-                // precedence: (1) vyperConfig, otherwise (2) process.env 
-                let password = settings.extensionConfig().analysis.mythx.password || process.env.MYTHX_PASSWORD;
-                let ethAddress = settings.extensionConfig().analysis.mythx.ethAddress || process.env.MYTHX_ETH_ADDRESS;
+                // precedence: (1) vyperConfig, otherwise (2) process.env
+                let password =
+                    settings.extensionConfig().analysis.mythx.password ||
+                    process.env.MYTHX_PASSWORD;
+                let ethAddress =
+                    settings.extensionConfig().analysis.mythx.ethAddress ||
+                    process.env.MYTHX_ETH_ADDRESS;
 
                 //set to trial?
                 if (ethAddress == "trial") {
@@ -210,54 +230,116 @@ function compileActiveFileCommand(contractFile) {
                 }
 
                 //not set and never asked
-                if (false && ethAddress == "initial") { //@note: no more trial
-                    if (typeof extensionContext.globalState.get("vyper.mythx.account.trial") === "undefined") {
-                        vscode.window.showInformationMessage('[MythX ] Enable MythX security analysis trial mode?', "Free Trial", "Tell me more!", "No, Thanks!")
-                            .then(choice => {
+                if (false && ethAddress == "initial") {
+                    //@note: no more trial
+                    if (
+                        typeof extensionContext.globalState.get(
+                            "vyper.mythx.account.trial"
+                        ) === "undefined"
+                    ) {
+                        vscode.window
+                            .showInformationMessage(
+                                "[MythX ] Enable MythX security analysis trial mode?",
+                                "Free Trial",
+                                "Tell me more!",
+                                "No, Thanks!"
+                            )
+                            .then((choice) => {
                                 if (choice == "Free Trial") {
-                                    extensionContext.globalState.update("vyper.mythx.account.trial", "useTrial");
-                                    return compileActiveFileCommand(contractFile);
+                                    extensionContext.globalState.update(
+                                        "vyper.mythx.account.trial",
+                                        "useTrial"
+                                    );
+                                    return compileActiveFileCommand(
+                                        contractFile
+                                    );
                                 } else if (choice == "Tell me more!") {
-                                    vscode.env.openExternal(vscode.Uri.parse("https://www.mythx.io/#faq"));
+                                    vscode.env.openExternal(
+                                        vscode.Uri.parse(
+                                            "https://www.mythx.io/#faq"
+                                        )
+                                    );
                                 } else {
-                                    extensionContext.globalState.update("vyper.mythx.account.trial", "noAsk");
+                                    extensionContext.globalState.update(
+                                        "vyper.mythx.account.trial",
+                                        "noAsk"
+                                    );
                                 }
                             });
                     }
-                    if (extensionContext.globalState.get("vyper.mythx.account.trial") && extensionContext.globalState.get("vyper.mythx.account.trial") == "useTrial") {
-                        ethAddress = "0x0000000000000000000000000000000000000000";
+                    if (
+                        extensionContext.globalState.get(
+                            "vyper.mythx.account.trial"
+                        ) &&
+                        extensionContext.globalState.get(
+                            "vyper.mythx.account.trial"
+                        ) == "useTrial"
+                    ) {
+                        ethAddress =
+                            "0x0000000000000000000000000000000000000000";
                         password = "trial";
                     }
                 }
 
-                if (settings.extensionConfig().analysis.onSave && ethAddress && password) {
+                if (
+                    settings.extensionConfig().analysis.onSave &&
+                    ethAddress &&
+                    password
+                ) {
                     //if mythx is configured
                     // bytecode
                     for (let contractKey in success) {
-                        mod_analyze.analyze.mythXjs(ethAddress, password, success[contractKey].bytecode, success[contractKey].deployedBytecode)
-                            .then(result => {
+                        mod_analyze.analyze
+                            .mythXjs(
+                                ethAddress,
+                                password,
+                                success[contractKey].bytecode,
+                                success[contractKey].deployedBytecode
+                            )
+                            .then((result) => {
                                 let diagIssues = [];
 
                                 result.forEach(function (_result) {
                                     _result.issues.forEach(function (issue) {
                                         let shortmsg = `[${issue.severity}] ${issue.swcID}: ${issue.description.head}`;
                                         let errormsg = `[${issue.severity}] ${issue.swcID}: ${issue.swcTitle}\n${issue.description.head}\n${issue.description.tail}\n\nCovered Instructions/Paths: ${_result.meta.coveredInstructions}/${_result.meta.coveredPaths}`;
-                                        let lineNr = 1;  // we did not submit any source so just pin it to line 0
+                                        let lineNr = 1; // we did not submit any source so just pin it to line 0
 
                                         diagIssues.push({
-                                            code: '',
+                                            code: "",
                                             message: shortmsg,
-                                            range: new vscode.Range(new vscode.Position(lineNr - 1, 0), new vscode.Position(lineNr - 1, 255)),
-                                            severity: mod_analyze.mythXSeverityToVSCodeSeverity[issue.severity],
+                                            range: new vscode.Range(
+                                                new vscode.Position(
+                                                    lineNr - 1,
+                                                    0
+                                                ),
+                                                new vscode.Position(
+                                                    lineNr - 1,
+                                                    255
+                                                )
+                                            ),
+                                            severity:
+                                                mod_analyze
+                                                    .mythXSeverityToVSCodeSeverity[
+                                                    issue.severity
+                                                ],
                                             source: errormsg,
-                                            relatedInformation: []
+                                            relatedInformation: [],
                                         });
                                     });
                                 });
-                                diagnosticCollections.mythx.set(contractFile.uri, diagIssues);
-                                vscode.window.showInformationMessage(`[MythX success] ${contractKey}: ${diagIssues.length} issues`);
-                            }).catch(err => {
-                                vscode.window.showErrorMessage('[MythX error] ' + err);
+                                diagnosticCollections.mythx.set(
+                                    contractFile.uri,
+                                    diagIssues
+                                );
+                                vscode.window.showInformationMessage(
+                                    `[MythX success] ${contractKey}: ${diagIssues.length} issues`
+                                );
+                            })
+                            .catch((err) => {
+                                vscode.window.showErrorMessage(
+                                    "[MythX error] " + err
+                                );
                                 console.log(err);
                             });
                     }
@@ -266,7 +348,7 @@ function compileActiveFileCommand(contractFile) {
             (errormsg) => {
                 diagnosticCollections.compiler.delete(contractFile.uri);
                 diagnosticCollections.mythx.delete(contractFile.uri);
-                vscode.window.showErrorMessage('[Compiler Error] ' + errormsg);
+                vscode.window.showErrorMessage("[Compiler Error] " + errormsg);
                 let lineNr = 1; // add default errors to line 0 if not known
                 let matches = /(?:line\s+(\d+))/gm.exec(errormsg);
                 if (matches && matches.length == 2) {
@@ -287,7 +369,10 @@ function compileActiveFileCommand(contractFile) {
                     shortmsg = "SyntaxError: invalid syntax";
                 } else {
                     //match generic vyper exceptions
-                    let matches = /vyper\.exceptions\.\w+Exception:\s+(?:line\s+(\d+)).*$/gm.exec(errormsg);
+                    let matches =
+                        /vyper\.exceptions\.\w+Exception:\s+(?:line\s+(\d+)).*$/gm.exec(
+                            errormsg
+                        );
                     if (matches && matches.length > 0) {
                         shortmsg = matches[0];
                         if (matches.length >= 2) {
@@ -296,19 +381,24 @@ function compileActiveFileCommand(contractFile) {
                     }
                 }
                 if (errormsg) {
-                    diagnosticCollections.compiler.set(contractFile.uri, [{
-                        code: '',
-                        message: shortmsg,
-                        range: new vscode.Range(new vscode.Position(lineNr - 1, 0), new vscode.Position(lineNr - 1, 255)),
-                        severity: vscode.DiagnosticSeverity.Error,
-                        source: errormsg,
-                        relatedInformation: []
-                    }]);
+                    diagnosticCollections.compiler.set(contractFile.uri, [
+                        {
+                            code: "",
+                            message: shortmsg,
+                            range: new vscode.Range(
+                                new vscode.Position(lineNr - 1, 0),
+                                new vscode.Position(lineNr - 1, 255)
+                            ),
+                            severity: vscode.DiagnosticSeverity.Error,
+                            source: errormsg,
+                            relatedInformation: [],
+                        },
+                    ]);
                 }
             }
         )
-        .catch(ex => {
-            vscode.window.showErrorMessage('[Compiler Exception] ' + ex);
+        .catch((ex) => {
+            vscode.window.showErrorMessage("[Compiler Exception] " + ex);
             console.error(ex);
         });
 }
@@ -324,7 +414,7 @@ function compileActiveFile(contractFile) {
             contractsDirectory: "./contracts",
             working_directory: "",
             all: true,
-            paths: [contractFile.uri.fsPath]
+            paths: [contractFile.uri.fsPath],
         };
 
         compileVyper(options, function (err, result, paths, compilerInfo) {
@@ -339,9 +429,12 @@ function compileActiveFile(contractFile) {
 
 function init(context, type) {
     VYPER_ID = type;
-    diagnosticCollections.compiler = vscode.languages.createDiagnosticCollection('Vyper Compiler');
+    diagnosticCollections.compiler =
+        vscode.languages.createDiagnosticCollection("Vyper Compiler");
     context.subscriptions.push(diagnosticCollections.compiler);
-    diagnosticCollections.mythx = vscode.languages.createDiagnosticCollection('MythX Security Platform');
+    diagnosticCollections.mythx = vscode.languages.createDiagnosticCollection(
+        "MythX Security Platform"
+    );
     context.subscriptions.push(diagnosticCollections.mythx);
     extensionContext = context;
 }
@@ -349,5 +442,5 @@ function init(context, type) {
 module.exports = {
     init: init,
     compileContractCommand: compileActiveFileCommand,
-    compileContract: compileActiveFile
+    compileContract: compileActiveFile,
 };

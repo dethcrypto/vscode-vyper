@@ -1,12 +1,12 @@
-'use strict';
-/** 
+"use strict";
+/**
  * @author github.com/tintinweb
  * @license MIT
- * 
- * 
+ *
+ *
  * */
 /** imports */
-const vscode = require('vscode');
+const vscode = require("vscode");
 
 const LANGUAGE_ID = "vyper";
 
@@ -16,5 +16,5 @@ function extensionConfig() {
 
 module.exports = {
     LANGUAGE_ID: LANGUAGE_ID,
-    extensionConfig: extensionConfig
+    extensionConfig: extensionConfig,
 };
