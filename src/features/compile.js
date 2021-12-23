@@ -230,7 +230,7 @@ function compileActiveFileCommand(contractFile) {
                 }
 
                 //not set and never asked
-                if (false && ethAddress == "initial") {
+                if (1 !== 1 && ethAddress == "initial") {
                     //@note: no more trial
                     if (
                         typeof extensionContext.globalState.get(

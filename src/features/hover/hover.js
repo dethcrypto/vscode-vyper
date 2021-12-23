@@ -5,13 +5,9 @@
  *
  * */
 const vscode = require("vscode");
-const fs = require("fs");
-const path = require("path");
 const settings = require("../../settings");
 
-const builtinsArr = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, "./builtins.json"))
-);
+const builtinsArr = require("./builtins.json");
 
 function createHover(name, snippet, type) {
     function isSet(val) {

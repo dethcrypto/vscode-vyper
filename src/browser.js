@@ -10,12 +10,10 @@
 /** imports */
 const vscode = require("vscode");
 
-
-const mod_deco = require("./features/deco.js");
-const mod_signatures = require("./features/signatures.js");
-const mod_hover = require("./features/hover/hover.js");
-const mod_compile = require("./features/compile.js");
+const mod_deco = require("./features/deco");
+const mod_hover = require("./features/hover/hover");
 const settings = require("./settings");
+
 /** global vars */
 var activeEditor;
 
@@ -30,9 +28,11 @@ async function onDidSave(document) {
         return;
     }
 
-    //always run on save
-    if (settings.extensionConfig().compile.onSave) {
-        mod_compile.compileContractCommand(document);
+    if (!IS_WEB) {
+        //always run on save
+        if (settings.extensionConfig().compile.onSave) {
+            mod_compile.compileContractCommand(document);
+        }
     }
 }
 
@@ -118,7 +118,7 @@ async function onDidChange(event) {
 }
 function onInitModules(context, type) {
     mod_hover.init(context, type);
-    mod_compile.init(context, type);
+    if (!IS_WEB) mod_compile.init(context, type);
 }
 
 /**
@@ -145,12 +145,14 @@ function onActivate(context) {
             ],
         });
 
-        context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "vyper.compileContract",
-                mod_compile.compileContractCommand
-            )
-        );
+        if (!IS_WEB) {
+            context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    "vyper.compileContract",
+                    mod_compile.compileContractCommand
+                )
+            );
+        }
 
         if (!settings.extensionConfig().mode.active) {
             console.log(
