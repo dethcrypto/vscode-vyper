@@ -8,14 +8,14 @@
  * */
 
 /** imports */
-const vscode = require("vscode");
+import * as vscode from "vscode";
 
-const mod_deco = require("./features/deco");
-const mod_hover = require("./features/hover/hover");
-const settings = require("./settings");
+import * as mod_deco from "./features/deco";
+import * as mod_hover from "./features/hover/hover";
+import * as settings from "./settings";
 
 /** global vars */
-var activeEditor;
+var activeEditor: vscode.TextEditor | undefined;
 
 /** classdecs */
 
@@ -27,18 +27,11 @@ async function onDidSave(document) {
         console.log("langid mismatch");
         return;
     }
-
-    if (!IS_WEB) {
-        //always run on save
-        if (settings.extensionConfig().compile.onSave) {
-            mod_compile.compileContractCommand(document);
-        }
-    }
 }
 
-async function onDidChange(event) {
+async function onDidChange() {
     if (
-        vscode.window.activeTextEditor.document.languageId !=
+        vscode.window.activeTextEditor?.document?.languageId !=
         settings.LANGUAGE_ID
     ) {
         return;
@@ -118,7 +111,6 @@ async function onDidChange(event) {
 }
 function onInitModules(context, type) {
     mod_hover.init(context, type);
-    if (!IS_WEB) mod_compile.init(context, type);
 }
 
 /**
@@ -131,8 +123,6 @@ function onActivate(context) {
     registerDocType(settings.LANGUAGE_ID);
 
     function registerDocType(type) {
-        context.subscriptions.push(vscode.languages.reg);
-
         // taken from: https://github.com/Microsoft/vscode/blob/master/extensions/python/src/pythonMain.ts ; slightly modified
         // autoindent while typing
         vscode.languages.setLanguageConfiguration(type, {
@@ -145,25 +135,10 @@ function onActivate(context) {
             ],
         });
 
-        if (!IS_WEB) {
-            context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    "vyper.compileContract",
-                    mod_compile.compileContractCommand
-                )
-            );
-        }
-
-        if (!settings.extensionConfig().mode.active) {
-            console.log(
-                "ⓘ activate extension: entering passive mode. not registering any active code augmentation support."
-            );
-            return;
-        }
         /** module init */
         onInitModules(context, type);
         onDidChange();
-        onDidSave(active.document);
+        if (active) onDidSave(active.document);
 
         /** event setup */
         /***** OnChange */
@@ -181,7 +156,7 @@ function onActivate(context) {
         vscode.workspace.onDidChangeTextDocument(
             (event) => {
                 if (activeEditor && event.document === activeEditor.document) {
-                    onDidChange(event);
+                    onDidChange();
                 }
             },
             null,

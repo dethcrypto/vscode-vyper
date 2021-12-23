@@ -10,7 +10,7 @@ const browserWebpackConfig = /** @type WebpackConfig */ {
     mode: "none", // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
     target: "webworker", // web extensions run in a webworker context
     entry: {
-        "web-extension": "./src/browser.js", // source of the web extension main file
+        "web-extension": "./src/browser.ts", // source of the web extension main file
     },
     output: {
         filename: "[name].js",
@@ -28,11 +28,17 @@ const browserWebpackConfig = /** @type WebpackConfig */ {
             // see https://webpack.js.org/configuration/resolve/#resolvefallback
             // for the list of Node.js core module polyfills.
             assert: require.resolve("assert"),
-            "path": require.resolve("path-browserify")
+            path: require.resolve("path-browserify"),
         },
     },
     module: {
-        rules: [],
+        rules: [
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: [{ loader: "ts-loader" }],
+            },
+        ],
     },
     plugins: [
         new webpack.ProvidePlugin({
